@@ -1,4 +1,4 @@
-# flickr-clj
+# flickr-clj [![Build Status](https://secure.travis-ci.org/stanistan/flickr-clj.png)](http://travis-ci.org/stanistan/flickr-clj)
 
 A Clojure library designed to interface with the flickr API.
 

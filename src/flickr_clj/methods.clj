@@ -2,7 +2,7 @@
   (:use [flickr-clj.methods.list]
         [flickr-clj.utils]))
 
-(defn- method-info
+(defn method-info
   "Gets a map of info about a given method based."
   [piece parent]
   (let [[m n] (if (keyword? piece) [:get piece] piece)]
@@ -21,7 +21,7 @@
 (def method-group?
   (comp not empty? get-methods-in-group))
 
-(defn- get-possible-groups
+(defn get-possible-groups
   "Gets all possible groups for the given key.
    Useful because of photos/photos.comments."
   [n]

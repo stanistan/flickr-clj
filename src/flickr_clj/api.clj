@@ -1,6 +1,6 @@
 (ns flickr-clj.api
   (:use [flickr-clj.methods :only [get-method-info]]
-        [flickr-clj.config]
+        [flickr-clj config auth]
         [cheshire.core :as json])
   (:require [clj-http.client :as client]))
 
@@ -24,8 +24,7 @@
   {:method method
    :format "json"
    :nojsoncallback "1"
-   :api_key (get-api-key)
-   :api_secret (get-api-secret)})
+   :api_key (get-api-key)})
 
 (defn- api-params
   "Default client options based on method info."
@@ -33,6 +32,23 @@
   {:method (:request-method method-info)
    :url (get-url (or (:endpoint opts) :http))
    :query-params (query-params (:name method-info))})
+
+(defn- signature-from-params
+  [{:keys [query-params form-params]}]
+  (generate-signature
+    (get-api-secret)
+    (merge query-params form-params)))
+
+(defn- params<-signature
+  [params]
+  (assoc-in params [:query-params :api_sig] (signature-from-params params)))
+
+(defn- prepare-params
+  [info options data]
+  (let [pars (api-params info options)
+        get? (= :get (:request-method info))
+        mdata { (if get? :query-params :form-params) data}]
+    (params<-signature (merge-with merge pars mdata))))
 
 (defn call
   "Makes an API call to flickr based on the method and options given.
@@ -49,9 +65,8 @@
   [method data & [opts]]
   (let [opts (or opts {})
         info (method-info method)
-        params (api-params info opts)
-        add { (if (= :get (:request-method info)) :query-params :form-params) data }]
-    (-> (merge-with merge params add opts)
+        final-params (merge-with merge (prepare-params info opts data) opts)]
+    (-> final-params
       (client/request)
       (:body)
       (json/parse-string true))))

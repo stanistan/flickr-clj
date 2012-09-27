@@ -1,5 +1,6 @@
 (ns flickr-clj.utils
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string])
+  (:import java.security.MessageDigest))
 
 (defn to-keyword
   "Cast to keyword."
@@ -34,3 +35,13 @@
   [s]
   (let [uc (->> s (dash-split) (map string/capitalize) (string/join) (seq) (vec))]
     (string/join (assoc uc 0 (string/lower-case (first uc))))))
+
+(defn md5
+  "MD5 Hash a string."
+  [s]
+  (let [md (MessageDigest/getInstance "MD5")
+        digest (do (.reset md)
+                   (.update md (.getBytes s))
+                   (.toString (java.math.BigInteger. 1 (.digest md)) 16))
+        missing (- 32 (count digest))]
+    (str (apply str (repeat missing "0")) digest)))

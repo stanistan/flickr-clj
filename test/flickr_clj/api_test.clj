@@ -1,2 +1,6 @@
 (ns flickr-clj.api-test
-  (:use [flickr-clj.api :as api] clojure.test))
+  (:use clojure.test)
+  (:require [flickr-clj [api :as api]
+                        [auth :as auth]
+                        [config :as config]]))
+

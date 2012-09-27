@@ -1,13 +1,28 @@
 (ns flickr-clj.config)
 
-;; Key
+(defn sname
+  "Returns a prefixed symbol for the given symbol."
+  [pref s]
+  (symbol (str pref s)))
 
-(def api-key nil)
-(defn get-api-key [] api-key)
-(defn set-api-key [v] (def api-key v))
+(defn snamer
+  "Returns a vector of a getter and setter symbol."
+  [s]
+  (mapv #(sname % s) ["get-" "set-" "reset-"]))
 
-;; Secret
+(defmacro configurable-value
+  "Given a symbol and an initial value, this sets up a getter, setter, and resetter fns."
+  [n v]
+  (let [[g s r] (snamer n)]
+   `(do
+      (def ^{:private true} ~n ~v)
+      (defn ~g [] ~n)
+      (defn ~s [s#] (do (def ~n s#) (~g)))
+      (defn ~r [] (~s ~v))
+      ~v)))
 
-(def api-secret nil)
-(defn get-api-secret [] api-secret)
-(defn set-api-secret [v] (def api-secret v))
+;; initialize
+
+(configurable-value api-key nil)
+
+(configurable-value api-secret nil)

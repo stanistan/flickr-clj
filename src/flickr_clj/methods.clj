@@ -9,7 +9,7 @@
     {:request-method m
      :key n
      :parent parent
-     :name (dot-join ["flickr" (to-str parent) (camel-case n)])}))
+     :name (dot-join ["flickr" (camel-case parent) (camel-case n)])}))
 
 (defn get-methods-in-group
   "Returns a vector of methods and info for a given group.
@@ -39,10 +39,9 @@
   [n]
   (first (filter method-group? (get-possible-groups n))))
 
-(defn- get-method-name
+(def get-method-name
   "Method name from method identifier."
-  [n]
-  (keyword (last (dot-split n))))
+  (comp keyword last dot-split))
 
 (defn get-method-info
   "Gets method info based on method identifier or nil.

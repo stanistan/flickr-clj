@@ -1,6 +1,13 @@
 (ns flickr-clj.methods-test
   (:use flickr-clj.methods clojure.test))
 
+(def test-results
+  [{:request-method :post :key :add :parent :favorites :name "flickr.favorites.add"}
+   {:request-method :get :key :get-context :parent :favorites :name "flickr.favorites.getContext"}
+   {:request-method :get :key :get-list :parent :favorites :name "flickr.favorites.getList"}
+   {:request-method :get :key :get-public-list :parent :favorites :name "flickr.favorites.getPublicList"}
+   {:request-method :post :key :remove :parent :favorites :name "flickr.favorites.remove"}])
+
 (deftest method-info-generator
   (testing "method-info with get"
     (is (=
@@ -34,11 +41,7 @@
     (is (=
       (get-methods-in-group :favorites)
       (get-methods-in-group "favorites")
-      [{:request-method :post :key :add :parent :favorites :name "flickr.favorites.add"}
-       {:request-method :get :key :get-context :parent :favorites :name "flickr.favorites.getContext"}
-       {:request-method :get :key :get-list :parent :favorites :name "flickr.favorites.getList"}
-       {:request-method :get :key :get-public-list :parent :favorites :name "flickr.favorites.getPublicList"}
-       {:request-method :post :key :remove :parent :favorites :name "flickr.favorites.remove"}])))
+      test-results)))
   (testing "bools"
     (is (= true
       (method-group? :favorites)
@@ -63,4 +66,19 @@
     (is (= :photos.comments
       (get-group "photos.comments")
       (get-group "photos.comments.a-method")
-      (get-group :photos.comments)))))
+      (get-group :photos.comments)
+      (get-group :photos.comments.ab.cd.ef)))))
+
+(deftest actual-method-info
+  (testing "get method name from qualified name"
+    (is (= :some-method
+      (get-method-name :a.b.c.d.some-method)
+      (get-method-name :a.some-method)
+      (get-method-name "a.something.some-method"))))
+  (testing "get method info"
+    (is (= (first test-results)
+      (get-method-info :favorites.add)
+      (get-method-info "favorites.add")))
+    (is (= (second test-results)
+      (get-method-info :favorites.get-context)
+      (get-method-info "favorites.get-context")))))

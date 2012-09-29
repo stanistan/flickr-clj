@@ -4,3 +4,7 @@
                         [auth :as auth]
                         [config :as config]]))
 
+(deftest missing-method
+  (testing "invalid-method"
+    (is (thrown? Exception (api/method-info :a.b.c.d)))))
+

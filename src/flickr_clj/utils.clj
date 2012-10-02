@@ -44,7 +44,7 @@
   [s]
   (let [md (MessageDigest/getInstance "MD5")
         digest (do (.reset md)
-                   (.update md (.getBytes s))
+                   (.update md (.getBytes (str s)))
                    (.toString (java.math.BigInteger. 1 (.digest md)) 16))
         missing (- 32 (count digest))]
     (str (apply str (repeat missing "0")) digest)))
@@ -69,3 +69,15 @@
       (defn ~s [s#] (do (def ~n s#) (~g)))
       (defn ~r [] (~s ~v))
       ~v)))
+
+(defmacro elapsed-response
+  [& body]
+ `(let [start# (. java.lang.System (clojure.core/nanoTime))
+        re# ~@body
+        end# (. java.lang.System (clojure.core/nanoTime))
+        el# (/ (double (- end# start#)) 100000.0)]
+    {:response re#
+     :elapsed {:start start#
+               :end end#
+               :dur el#
+               :dur-str (str "Elapsed time: " el# " msecs")}}))

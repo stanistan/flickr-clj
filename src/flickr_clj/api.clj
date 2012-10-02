@@ -1,8 +1,8 @@
 (ns flickr-clj.api
-  (:use [flickr-clj [utils :only [mmerge]]
+  (:use [flickr-clj [utils :only [mmerge elapsed-response]]
                     [methods :only [get-method-info]]
                     config]
-        [flickr-clj.api.params :as params]
+        [flickr-clj.api [params :as params] [log :as log]]
         [cheshire.core :as json])
   (:require [clj-http.client :as client]))
 
@@ -11,7 +11,15 @@
   (or (get-method-info method)
       (throw (Exception. "Invalid flickr api method."))))
 
-(defn call
+(def requests-made)
+
+(def last-request (atom nil))
+
+(defn parse-args
+  [method data & [opts]]
+  (-> (method-info method) (params/repare opts data) (mmerge opts)))
+
+(defn call*
   "Makes an API call to flickr based on the method and options given.
    The data parameter will either be mapped to :query-params or :form-params depending
    on the type of request that is being made.
@@ -24,12 +32,15 @@
    (config/set-api-key MY_API_KEY)
    (api/call :photos.search {:text nyc})"
   [method data & [opts]]
-  (-> (method-info method)
-    (params/prepare opts data)
-    (mmerge opts)
-    (client/request)
-    (:body)
-    (json/parse-string true)))
+  (-> (parse-args method data opts) (client/request) (:body) (json/parse-string true)))
+
+(defn call
+  [& args]
+  (let [client-args (apply parse-args args)
+        {:keys [elapsed response]} (elapsed-response (apply call* args))]
+    (do
+      (r/log-request client-args response elapsed)
+      response)))
 
 (defmacro defcaller
   "This should be used for when using multiple api accounts.

@@ -2,8 +2,9 @@
   (:use [flickr-clj [utils :only [mmerge elapsed-response]]
                     [methods :only [get-method-info]]
                     config]
-        [flickr-clj.api [params :as params] [log :as log]]
-        [cheshire.core :as json])
+        [flickr-clj.api [params :as params]]
+        [cheshire.core :as json]
+        cacheable.atom)
   (:require [clj-http.client :as client]))
 
 (defn method-info
@@ -36,11 +37,17 @@
 
 (defn call
   [& args]
-  (let [client-args (apply parse-args args)
-        {:keys [elapsed response]} (elapsed-response (apply call* args))]
-    (do
-      (r/log-request client-args response elapsed)
-      response)))
+  (elapsed-response (apply call* args)))
+
+(defn cached-caller
+  [dir interval]
+  (let [c (init-cache dir)]
+    (fn [& args]
+      (let [k (md5 (apply parse-args args))]
+        (:response (or
+                    (value c k)
+                    (save c k (apply call args)
+                              (if interval (prep-expires interval) false))))))))
 
 (defmacro defcaller
   "This should be used for when using multiple api accounts.
@@ -57,3 +64,5 @@
                   flickr-clj.config/get-api-secret (fn [] ~(:secret conf))
                   flickr-clj.config/get-api-query-args (fn [] ~(:query-args conf))]
       (apply call gs#))))
+
+

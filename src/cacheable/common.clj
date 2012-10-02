@@ -10,7 +10,13 @@
   (num-records [this])
   (save [this k v] [this k v e])
   (value [this k])
-  (populate [this data]))
+  (populate [this data])
+  (get-all-with-meta [this])
+  (get-all [this])
+  (remove-expired [this])
+  (initialize-cache [this])
+  (spawn-cache-cleaner [this])
+  (stop-cache-cleaners [this]))
 
 ;; Helper functions
 
@@ -40,7 +46,7 @@
         (expired? value) (do (delete cache value) nil)
         :else (:value value)))
 
-;; Commonnly implimented interface functions
+;; Commonly implemented
 
 (defn value*
   [cache k]
@@ -48,15 +54,56 @@
 
 (defn save*
   ([cache k v] (save cache k v false))
-  ([cache k v e] (store-value cache k v e)))
+  ([cache k v e] (do (store-value cache k v e) v)))
 
 (defn populate*
   [cache data]
   (do (doseq [[k v] data] (save cache k v))
     cache))
 
+(defn get-all*
+  [cache]
+  (map :value (get-all-with-meta cache)))
+
+(defn remove-expired*
+  [cache]
+  (doseq [[k v] (get-all-with-meta cache)]
+    (when (expired? v) (delete cache k))))
+
+(defn spawn-cache-cleaner*
+  [cache]
+  (swap!
+    (:cleaners cache)
+    conj
+    (future
+      (loop []
+        (remove-expired cache)
+        (Thread/sleep 1000)
+        (recur)))))
+
+(defn initialize-cache*
+  [cache]
+  (let [c (assoc cache :cleaners (atom []))]
+    (spawn-cache-cleaner c)
+    c))
+
+(defn stop-cache-cleaners*
+  [cache]
+  (let [cls (:cleaners cache)]
+    (do
+      (doseq [c @cls] (future-cancel c))
+      (reset! cls []))))
+
 (def shared-behavior
   {:value value*
    :save save*
-   :populate populate*})
+   :populate populate*
+   :get-all get-all*
+   :remove-expired remove-expired*
+   :spawn-cache-cleaner spawn-cache-cleaner*
+   :initialize-cache initialize-cache*
+   :stop-cache-cleaners stop-cache-cleaners*})
 
+(defmacro start-cache
+  [record-type arg values]
+  `(-> ~arg (~record-type) (initialize-cache) (populate ~values)))

@@ -24,10 +24,12 @@
     (first)))
 
 (defn data-from-file
-  [suffix suffix-pattern dir n]
-  (let [f (get-cache-file suffix suffix-pattern dir n)]
-    (if (nil? f) nil
-      (-> f (.getAbsolutePath) (slurp) (load-string)))))
+  [f]
+  (if (nil? f) nil
+    (-> f (.getAbsolutePath) (slurp) (load-string))))
+
+(def data-from-filename
+  (comp data-from-file get-cache-file))
 
 (defn write-to-file
   [suffix dir f data]
@@ -49,6 +51,7 @@
               :cachefile? [pattern]
               :get-dir-files [pattern]
               :get-cache-file [suffix pattern]
-              :data-from-file [suffix pattern]
+              :data-from-filename [suffix pattern]
+              :data-from-file []
               :write-to-file [suffix]}]
     (reduce merge (map gen-partial conf))))

@@ -1,10 +1,11 @@
 (ns flickr-clj.api
-  (:use [flickr-clj [utils :only [mmerge elapsed-response]]
+  (:use [flickr-clj [utils :only [mmerge elapsed-response md5]]
                     [methods :only [get-method-info]]
                     config]
-        [flickr-clj.api [params :as params]]
+        [flickr-clj.api.params :as params]
         [cheshire.core :as json]
-        cacheable.atom)
+        cacheable.atom
+        cacheable.common)
   (:require [clj-http.client :as client]))
 
 (defn method-info
@@ -12,13 +13,9 @@
   (or (get-method-info method)
       (throw (Exception. "Invalid flickr api method."))))
 
-(def requests-made)
-
-(def last-request (atom nil))
-
 (defn parse-args
   [method data & [opts]]
-  (-> (method-info method) (params/repare opts data) (mmerge opts)))
+  (-> (method-info method) (params/prepare opts data) (mmerge opts)))
 
 (defn call*
   "Makes an API call to flickr based on the method and options given.
@@ -47,7 +44,7 @@
         (:response (or
                     (value c k)
                     (save c k (apply call args)
-                              (if interval (prep-expires interval) false))))))))
+                              (or interval false))))))))
 
 (defmacro defcaller
   "This should be used for when using multiple api accounts.

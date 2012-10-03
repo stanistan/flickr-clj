@@ -17,46 +17,22 @@
   [method data & [opts]]
   (-> (method-info method) (params/prepare opts data) (mmerge opts)))
 
+(defn parse-json
+  [s]
+  (json/parse-string s true))
+
 (def call*
-  [& args]
-  (-> (apply parse-args args) (client/make-request*) (json/parse-string true)))
-
-(def call
-  [& args]
-  (-> (apply parse-args args) (client/make-request) (json/parse-string true)))
-
-(defn cacheable-client client/cacheable-client)
-
-
-
-(defn call*
-  "Makes an API call to flickr based on the method and options given.
-   The data parameter will either be mapped to :query-params or :form-params depending
-   on the type of request that is being made.
-   opts is additional configuration that can be added to the request that is not data,
-   this can override anything.
-
-   An api_key is pretty much necessary for every request.
-
-   Example:
-   (config/set-api-key MY_API_KEY)
-   (api/call :photos.search {:text nyc})"
-  [& args]
-  (-> (apply parse-args args) (client/make-request*))
+  (comp parse-json client/make-request* parse-args))
 
 (defn call
   [& args]
   (elapsed-response (apply call* args)))
 
-(defn cached-caller
-  [dir interval]
-  (let [c (init-cache dir)]
-    {:cache c
-     :call (fn [& args]
-            (let [k (md5 (apply parse-args args))
-                  re (value c k)
-                  exp (if interval (+ (now) interval) false)]
-              (:response (or (value c k) (save c k (apply call args) exp)))))}))
+(defn cacheable-client
+  [cache-type interval & args]
+  (let [args (concat [cache-type interval parse-json] (or args []))]
+    (println args)
+    (apply client/cacheable-client args)))
 
 (defmacro defcaller
   "This should be used for when using multiple api accounts.

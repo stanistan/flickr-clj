@@ -1,5 +1,5 @@
 (ns flickr-clj.config
-  (:use flickr-clj.utils))
+  (:use utils.conf))
 
 (configurable-value
   api-key

@@ -1,5 +1,5 @@
 (ns flickr-clj.auth
-  (:use [flickr-clj utils]))
+  (:use utils.common))
 
 (defn generate-signature-string
   [secret coll]

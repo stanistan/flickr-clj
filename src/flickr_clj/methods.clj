@@ -1,6 +1,6 @@
 (ns flickr-clj.methods
   (:use [flickr-clj.methods.list]
-        [flickr-clj.utils]))
+        [utils common string]))
 
 (defn method-info
   "Gets a map of info about a given method based."

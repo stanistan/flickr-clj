@@ -1,6 +1,7 @@
 (ns flickr-clj.api.params
-  (:use [flickr-clj auth utils])
-  (:require [flickr-clj [config :as c]]))
+  (:use flickr-clj.auth
+        utils.common)
+  (:require [flickr-clj.config :as c]))
 
 (def endpoints
   {:http  "http://api.flickr.com/services"

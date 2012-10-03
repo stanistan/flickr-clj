@@ -30,9 +30,11 @@
   (request [this arg]))
 
 (defrecord CacheClient
-  [cache interval]
+  [cache interval parse-response]
   Client
-  (request [this arg] (make-request-with-cache cache interval arg)))
+  (request [this arg]
+    (let [re (make-request-with-cache cache interval arg)]
+      (assoc re :response (parse-response (:response re))))))
 
 (defn cache-type-init-fn
   [type]
@@ -40,5 +42,9 @@
 
 (defn cacheable-client
   [cache-type interval & args]
-  (let [cache (apply (cache-type-init-fn cache-type) (or args []))]
-    (->CacheClient cache interval)))
+  (let [args (or args [])
+        parser (if (fn? (first args)) (first args) false)
+        args (if parser (rest args) args)
+        cache (apply (cache-type-init-fn cache-type) args)]
+    (->CacheClient cache interval (or parser identity))))
+

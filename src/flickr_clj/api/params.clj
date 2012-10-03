@@ -17,7 +17,7 @@
 (defn prep-api-call
   [{:keys [request-method name]} {:keys [endpoint]}]
   {:method request-method
-   :url (get-url (or endpoint) :http)
+   :url (get-url (or endpoint :http))
    :query-params (prep-query-method name (c/get-api-key))})
 
 (defn get-signature

@@ -1,12 +1,12 @@
 (ns flickr-clj.api
-  (:use [flickr-clj [utils :only [mmerge elapsed-response md5]]
-                    [methods :only [get-method-info]]
-                    config]
+  (:use [flickr-clj [methods :only [get-method-info]] config]
         [flickr-clj.api.params :as params]
         [cheshire.core :as json]
-        cacheable.atom
+        utils.common
+        cacheable.disk
         cacheable.common)
-  (:require [clj-http.client :as client]))
+  (:require [cacheable-client.core :as client]
+            [cheshire.core :as json]))
 
 (defn method-info
   [method]
@@ -16,6 +16,18 @@
 (defn parse-args
   [method data & [opts]]
   (-> (method-info method) (params/prepare opts data) (mmerge opts)))
+
+(def call*
+  [& args]
+  (-> (apply parse-args args) (client/make-request*) (json/parse-string true)))
+
+(def call
+  [& args]
+  (-> (apply parse-args args) (client/make-request) (json/parse-string true)))
+
+(defn cacheable-client client/cacheable-client)
+
+
 
 (defn call*
   "Makes an API call to flickr based on the method and options given.
@@ -29,8 +41,8 @@
    Example:
    (config/set-api-key MY_API_KEY)
    (api/call :photos.search {:text nyc})"
-  [method data & [opts]]
-  (-> (parse-args method data opts) (client/request) (:body) (json/parse-string true)))
+  [& args]
+  (-> (apply parse-args args) (client/make-request*))
 
 (defn call
   [& args]
@@ -39,12 +51,12 @@
 (defn cached-caller
   [dir interval]
   (let [c (init-cache dir)]
-    (fn [& args]
-      (let [k (md5 (apply parse-args args))]
-        (:response (or
-                    (value c k)
-                    (save c k (apply call args)
-                              (or interval false))))))))
+    {:cache c
+     :call (fn [& args]
+            (let [k (md5 (apply parse-args args))
+                  re (value c k)
+                  exp (if interval (+ (now) interval) false)]
+              (:response (or (value c k) (save c k (apply call args) exp)))))}))
 
 (defmacro defcaller
   "This should be used for when using multiple api accounts.

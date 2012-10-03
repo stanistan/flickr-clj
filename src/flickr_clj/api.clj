@@ -3,7 +3,6 @@
         [flickr-clj.api.params :as params]
         [cheshire.core :as json]
         utils.common
-        cacheable.disk
         cacheable.common)
   (:require [cacheable-client.core :as client]
             [cheshire.core :as json]))
@@ -28,26 +27,19 @@
   [& args]
   (elapsed-response (apply call* args)))
 
-(defn cacheable-client
+(defn cache
   [cache-type interval & args]
   (let [args (concat [cache-type interval parse-json] (or args []))]
-    (println args)
     (apply client/cacheable-client args)))
 
-(defmacro defcaller
-  "This should be used for when using multiple api accounts.
+(defn cached-call
+  [cache & args]
+  (client/request cache (apply parse-args args)))
 
-  (api/defcaller my-caller {:key SOME_KEY :secret SOME_SECRET})
-  (api/defcaller another {:key SOME_OTHER_KEY})
+(defrecord Flickr [cached normal])
 
-  And use each one the same way as api/call
-
-  (my-caller :photos.search {:text nyc})"
-  [caller-name conf]
-  `(defn ~caller-name [& gs#]
-    (with-redefs [flickr-clj.config/get-api-key (fn [] ~(:key conf))
-                  flickr-clj.config/get-api-secret (fn [] ~(:secret conf))
-                  flickr-clj.config/get-api-query-args (fn [] ~(:query-args conf))]
-      (apply call gs#))))
-
-
+(defn init
+  [api-settings]
+  (->Flickr
+    (fn-with-config api-settings cached-call)
+    (fn-with-config api-settings call)))

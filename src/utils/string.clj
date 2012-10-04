@@ -10,6 +10,12 @@
   "Cast to string."
   (comp name to-keyword))
 
+(def match-found?
+  (comp not nil? re-seq))
+
+(def butlastletter
+  (comp (partial reduce str) butlast))
+
 (defn spl
   "Split alias using to string cast."
   [s re]

@@ -24,9 +24,17 @@
       :oldest-key
       (fn [this] (->> (get-all-with-meta this)
                   (sort-by (comp :saved second))
-                  (first)
-                  (first)))}))
+                  (first) (first)))}))
 
 (defn init-cache
-  [& [initial-values]]
-  (start-cache ->Atom (new-hash-atom) initial-values))
+   "Usage--
+   No limit, no pre-populated data:
+   (init-cache)
+
+   Prepopulated data:
+   (init-cache data-hash-map)
+
+   Prepopulated data and configuration (only limit is supported)
+   (init-cache {} :limit 10)"
+  [& [initial-values & extra]]
+  (start-cache ->Atom (new-hash-atom) initial-values extra))

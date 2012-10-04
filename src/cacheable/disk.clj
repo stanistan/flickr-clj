@@ -48,5 +48,14 @@
         (fn [this] (->> (:dir this) (oldest-file) (data-from-file) (:key)))})))
 
 (defn init-cache
-  [path-to-cache & [initial-values]]
-  (start-cache ->Disk path-to-cache initial-values))
+  "Usage--
+   No limit, no pre-populated data:
+   (init-cache \"/path/to/cache\")
+
+   Prepopulated data:
+   (init-cache \"/path/to/cache\" data-hash-map)
+
+   Prepopulated data and configuration (only limit is supported)
+   (init-cache \"/path/to/cache\" {} :limit 10)"
+  [path-to-cache & [initial-values & confs]]
+  (start-cache ->Disk path-to-cache initial-values confs))

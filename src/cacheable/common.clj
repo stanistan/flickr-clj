@@ -1,4 +1,5 @@
-(ns cacheable.common)
+(ns cacheable.common
+  (:use [utils.starred-fns :only [get-fns-map]]))
 
 ;; The protocol
 
@@ -89,7 +90,7 @@
     (future
       (loop []
         (remove-expired cache)
-        (Thread/sleep 1000)
+        (Thread/sleep 500)
         (recur)))))
 
 (defn initialize-cache*
@@ -110,16 +111,13 @@
   (delete cache (oldest-key cache)))
 
 (def shared-behavior
-  {:value value*
-   :save save*
-   :populate populate*
-   :get-all get-all*
-   :remove-expired remove-expired*
-   :spawn-cache-cleaner spawn-cache-cleaner*
-   :initialize-cache initialize-cache*
-   :stop-cache-cleaners stop-cache-cleaners*
-   :remove-oldest remove-oldest*})
+  (get-fns-map *ns*))
 
 (defmacro start-cache
-  [record-type arg values]
-  `(-> ~arg (~record-type) (initialize-cache) (populate ~values)))
+  [record-type arg values confs]
+  `(let [confs# (apply hash-map ~confs)]
+    (-> ~arg
+      (~record-type)
+      (initialize-cache)
+      (populate ~values)
+      (merge confs#))))

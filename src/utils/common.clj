@@ -4,6 +4,9 @@
 (def mmerge
   (partial merge-with merge))
 
+(def reduce-map
+  (comp (partial reduce merge) map))
+
 (defn md5
   "MD5 Hash a string."
   [s]

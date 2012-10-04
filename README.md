@@ -53,14 +53,68 @@ A Clojure library designed to interface with the flickr API.
 
 ## Cacheable
 
-Coming eventually
+#### Disk
+
+```clj
+(use 'cacheable.common 'cacheable.disk)
+
+(def path-to-cache "/path/to/cache")
+
+;; Initializing the cache...
+
+(def cache (init-cache path-to-cache))
+; or
+(def cache (init-cache path-to-cache {:populate "with this data"}))
+; or
+(def cache (init-cache path-tocache {} :limit 50))
+```
+
+#### Atom
+
+```clj
+(use 'cacheable.common 'cacheable.atom)
+
+;; Initializing the cache...
+
+(def cache (init-cache))
+; or
+(def cache (init-cache {:populate "with this data"}))
+; or
+(def cache (init-cache {} :limit 50))
+```
+
+#### Available fns
+
+These are common to both caches.
+
+```clj
+(save cache :some-key :some-value)
+
+(save cache :some-key :some-value time-expires-in-ms)
+
+(delete cache :some-key)
+
+(value cache :some-key)
+
+(clear cache)
+
+(get-all cache)
+
+(get-all-with-meta cache)
+
+;; Spawning/killing threads that remove expired data
+
+(spawn-cache-cleaner cache)
+
+(stop-cache-cleaners cache)
+```
 
 ## Todo:
 
-- Limit the size of the cache
-- Cacheable docs and examples
+- ~~Limit the size of the cache~~
+- ~~Cacheable docs and examples~~
 - Fn docs
-- Figure out what is good for standalone usage
+- ~~Figure out what is good for standalone usage~~
 
 ## License
 

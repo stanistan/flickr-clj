@@ -69,9 +69,11 @@
 
 (defn get-all*
   [cache]
-  (->> (get-all-with-meta cache)
-    (map #(hash-map (first %) (:value (second %))))
-    (reduce merge)))
+  (let [c (get-all-with-meta cache)]
+    (if (empty? c) {}
+      (->> c
+        (map #(hash-map (first %) (:value (second %))))
+        (reduce merge)))))
 
 (defn remove-expired*
   [cache]

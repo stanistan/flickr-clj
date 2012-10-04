@@ -5,6 +5,8 @@
   [coll]
   (first (first (sort-by (comp :saved second) coll))))
 
+(defn- new-hash-atom [& args] (atom {}))
+
 (defrecord Atom [store])
 
 (extend Atom
@@ -16,7 +18,7 @@
       :store-value
       (fn [this k v e] (swap! (:store this) assoc k (prep-for-storage k v e)))
       :clear
-      (fn [this] (reset! (:store this) (atom {})))
+      (fn [this] (doseq [k (keys (get-all this))] (delete this k)))
       :delete
       (fn [this k] (swap! (:store this) dissoc k))
       :num-records
@@ -25,8 +27,6 @@
       (fn [this] @(:store this))
       :remove-oldest
       (fn [this] (delete this (oldest-key (get-all-with-meta this))))}))
-
-(defn- new-hash-atom [] (atom {}))
 
 (defn init-cache
   [& [initial-values]]

@@ -33,7 +33,13 @@
                     (map data-from-file)
                     (filter (comp not nil?))
                     (map #(hash-map (:key %) %))
-                    (reduce merge)))})))
+                    (reduce merge)))
+        :remove-oldest
+        (fn [this] (->> (:dir this)
+                    (get-dir-files)
+                    (sort-by #(.lastModified %))
+                    (first)
+                    (.delete)))})))
 
 (defn init-cache
   [path-to-cache & [initial-values]]

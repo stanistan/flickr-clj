@@ -16,7 +16,8 @@
   (remove-expired [this])
   (initialize-cache [this])
   (spawn-cache-cleaner [this])
-  (stop-cache-cleaners [this]))
+  (stop-cache-cleaners [this])
+  (remove-oldest [this]))
 
 ;; Helper functions
 
@@ -54,7 +55,12 @@
 
 (defn save*
   ([cache k v] (save cache k v false))
-  ([cache k v e] (do (store-value cache k v e) v)))
+  ([cache k v e]
+    (let [limit (get cache :limit false)]
+      (do
+        (when (and limit (>= (num-records cache) limit)) (remove-oldest cache))
+        (store-value cache k v e)
+        v))))
 
 (defn populate*
   [cache data]
@@ -63,7 +69,9 @@
 
 (defn get-all*
   [cache]
-  (map :value (get-all-with-meta cache)))
+  (->> (get-all-with-meta cache)
+    (map #(hash-map (first %) (:value (second %))))
+    (reduce merge)))
 
 (defn remove-expired*
   [cache]

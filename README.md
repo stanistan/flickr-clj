@@ -4,9 +4,25 @@
 
 A Clojure library designed to interface with the flickr API.
 
+### Lein
+
+```clj
+[org.clojars.stanistan/flickr-clj "0.1.0"]
+```
+
+### Maven
+
+```xml
+<dependency>
+  <groupId>org.clojars.stanistan</groupId>
+  <artifactId>flickr-clj</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
 ## Usage
 
-- Api signature is automatically generated based on the arguments passed to the calling function.
+Api signature is automatically generated based on the arguments passed to the calling function.
 
 #### Simplest use case.
 

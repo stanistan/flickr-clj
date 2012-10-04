@@ -3,6 +3,16 @@
         clojure.java.io
         [cacheable.disk.helpers :as h]))
 
+(def dir-fns (h/fns "cache"))
+
+(defn oldest-file
+  [dir]
+  (let [{:keys [get-dir-files]} dir-fns]
+    (->> dir
+      (get-dir-files)
+      (sort-by #(.lastModified %))
+      (first))))
+
 (defrecord Disk [dir])
 
 (extend Disk
@@ -15,7 +25,7 @@
                get-dir-files
                get-cache-file
                data-from-filename]}
-       (h/fns "cache")]
+       dir-fns]
       { :value-with-meta
         (fn [this k] (data-from-filename (:dir this) k))
         :store-value
@@ -34,12 +44,8 @@
                     (filter (comp not nil?))
                     (map #(hash-map (:key %) %))
                     (reduce merge)))
-        :remove-oldest
-        (fn [this] (->> (:dir this)
-                    (get-dir-files)
-                    (sort-by #(.lastModified %))
-                    (first)
-                    (.delete)))})))
+        :oldest-key
+        (fn [this] (->> (:dir this) (oldest-file) (data-from-file) (:key)))})))
 
 (defn init-cache
   [path-to-cache & [initial-values]]

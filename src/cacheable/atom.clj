@@ -1,10 +1,6 @@
 (ns cacheable.atom
   (:use cacheable.common))
 
-(defn oldest-key
-  [coll]
-  (first (first (sort-by (comp :saved second) coll))))
-
 (defn new-hash-atom [& args] (atom {}))
 
 (defrecord Atom [store])
@@ -25,8 +21,11 @@
       (fn [this] (count @(:store this)))
       :get-all-with-meta
       (fn [this] @(:store this))
-      :remove-oldest
-      (fn [this] (delete this (oldest-key (get-all-with-meta this))))}))
+      :oldest-key
+      (fn [this] (->> (get-all-with-meta this)
+                  (sort-by (comp :saved second))
+                  (first)
+                  (first)))}))
 
 (defn init-cache
   [& [initial-values]]

@@ -17,7 +17,8 @@
   (initialize-cache [this])
   (spawn-cache-cleaner [this])
   (stop-cache-cleaners [this])
-  (remove-oldest [this]))
+  (remove-oldest [this])
+  (oldest-key [this]))
 
 ;; Helper functions
 
@@ -104,6 +105,10 @@
       (doseq [c @cls] (future-cancel c))
       (reset! cls []))))
 
+(defn remove-oldest*
+  [cache]
+  (delete cache (oldest-key cache)))
+
 (def shared-behavior
   {:value value*
    :save save*
@@ -112,7 +117,8 @@
    :remove-expired remove-expired*
    :spawn-cache-cleaner spawn-cache-cleaner*
    :initialize-cache initialize-cache*
-   :stop-cache-cleaners stop-cache-cleaners*})
+   :stop-cache-cleaners stop-cache-cleaners*
+   :remove-oldest remove-oldest*})
 
 (defmacro start-cache
   [record-type arg values]

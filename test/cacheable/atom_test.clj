@@ -44,9 +44,10 @@
     (do
       (clear cache)
       (populate cache test-data)
-      (save cache :key6 :value6)
-      (testing "is cache size limit kept?"
-        (is (= (num-records cache) test-limit)))
-      (testing "did the first test-data get-removed?"
-        (is (not (contains? (get-all cache) :key1))))
-      (clear cache))))
+      (let [oldest (oldest-key cache)]
+        (save cache :key6 :value6)
+        (testing "is cache size limit kept?"
+          (is (= (num-records cache) test-limit)))
+        (testing "did the first test-data get-removed?"
+          (is (not (contains? (get-all cache) oldest))))
+        (clear cache)))))

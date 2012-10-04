@@ -1,5 +1,6 @@
 (ns cacheable.disk-test
-  (:use clojure.test cacheable.disk cacheable.common))
+  (:use clojure.test cacheable.disk cacheable.common)
+  (:require [cacheable.atom :as h]))
 
 (def test-dir
   "/tmp/cacheable-disk-test")
@@ -51,9 +52,11 @@
     (do
       (clear cache)
       (populate cache test-data)
-      (save cache :key6 :value6)
-      (testing "is cache size limit kept?"
-        (is (= (num-records cache) test-limit)))
-      (testing "did the first test-data get-removed?"
-        (is (not (contains? (get-all cache) :key1))))
-      (clear cache))))
+      (let [oldest (h/oldest-key (get-all-with-meta cache))]
+        (save cache :key6 :value6)
+        (testing "is cache size limit kept?"
+          (is (= (num-records cache) test-limit)))
+        (testing "did the first test-data get-removed?"
+          (is (not (contains? (get-all cache) :key1))))
+        (clear cache)))))
+

@@ -1,11 +1,11 @@
 (ns cacheable.atom
   (:use cacheable.common))
 
-(defn- oldest-key
+(defn oldest-key
   [coll]
   (first (first (sort-by (comp :saved second) coll))))
 
-(defn- new-hash-atom [& args] (atom {}))
+(defn new-hash-atom [& args] (atom {}))
 
 (defrecord Atom [store])
 

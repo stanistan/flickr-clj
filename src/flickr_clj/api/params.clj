@@ -3,14 +3,6 @@
         utils.common)
   (:require [flickr-clj.config :as c]))
 
-(def endpoints
-  {:http  "http://api.flickr.com/services"
-   :https "https://secure.flickr.com/services"})
-
-(defn get-url
-  [http]
-  (str (http endpoints) "/rest/"))
-
 (defn prep-query-method
   [method api-key]
   (merge (c/get-api-query-args) {:method method :api_key api-key}))
@@ -18,7 +10,7 @@
 (defn prep-api-call
   [{:keys [request-method name]} {:keys [endpoint]}]
   {:method request-method
-   :url (get-url (or endpoint :http))
+   :url "https://api.flickr.com/services/rest/"
    :query-params (prep-query-method name (c/get-api-key))})
 
 (defn get-signature

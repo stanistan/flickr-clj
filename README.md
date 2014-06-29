@@ -27,7 +27,7 @@ Api signature is automatically generated based on the arguments passed to the ca
 #### Simplest use case.
 
 ```clj
-(use '[flickr-clj [config :as config] [api :as api]])
+(require '[flickr-clj [config :as conf] [api :as api]])
 
 (conf/set-api-key "MY_API_KEY")
 (conf/set-api-secret "MY_API_SECRET")

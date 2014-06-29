@@ -110,8 +110,18 @@
   [cache]
   (delete cache (oldest-key cache)))
 
+;; Make this explicit
+
 (def shared-behavior
-  (get-fns-map *ns*))
+  { :value value*
+    :save save*
+    :populate populate*
+    :get-all get-all*
+    :remove-expired remove-expired*
+    :spawn-cache-cleaner spawn-cache-cleaner*
+    :initialize-cache initialize-cache*
+    :stop-cache-cleaners stop-cache-cleaners*
+    :remove-oldest remove-oldest*})
 
 (defmacro start-cache
   [record-type arg values confs]

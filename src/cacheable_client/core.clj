@@ -1,7 +1,7 @@
 (ns cacheable-client.core
   (:use cacheable.common
         utils.common)
-  (:require [clj-http.client :as client]
+  (:require [org.httpkit.client :as client]
             cacheable.disk
             cacheable.atom))
 
